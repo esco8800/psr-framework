@@ -1,5 +1,9 @@
-# phpunit
+# phpunit and docker
 /phpunit.xml
+/start-me.sh
+/stop-me.sh
+/docker-compose.yml
+/.env.example
 
 # phpstorm project files
 .idea

@@ -1,20 +1,50 @@
 <?php
 
-use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\ServerRequestFactory;
+use Aura\Router\RouterContainer;
+use Framework\Http\Router\AuraRouterAdapter;
+use Framework\Http\ActionResolver;
+use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
+use Framework\Http\Exceptions\RequestNotMatchedException;
+use Zend\Diactoros\Response\JsonResponse;
 
 chdir(dirname(__DIR__));
 require 'vendor/autoload.php';
 
 ### Init
 
+$aura = new RouterContainer();
+$routes = $aura->getMap();
+
+$routes->get('home', '/', App\Http\Action\HelloAction::class);
+$routes->get('about', '/about', App\Http\Action\AboutAction::class);
+
+$router = new AuraRouterAdapter($aura);
+$resolver = new ActionResolver();
+
+### Running
+
 $request = ServerRequestFactory::fromGlobals();
 
-### Action
+try {
+    $result = $router->match($request);
 
-$name = $request->getQueryParams()['Name'] ?? 'Guest';
-$response = (new HtmlResponse('Hello ' . $name));
+    foreach ($result->getAttributes() as $attribute => $value){
+        $request = $request->withAttribute($attribute, $value);
+    }
+
+    $handler = $result->getHandler();
+    /** @var callable $action */
+    $action = $resolver->resolve($handler);
+    $response = $action($request);
+
+} catch (RequestNotMatchedException $e) {
+    $response = new JsonResponse(['error' => 'Undefined page'], 404);
+}
+
+### Postprocess
 
 ### Sending
 
-echo $response->getBody() . PHP_EOL;
+$emitter = new SapiEmitter();
+$emitter->emit($response);
