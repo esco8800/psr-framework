@@ -13,15 +13,24 @@ require 'vendor/autoload.php';
 
 ### Init
 
+$params = [
+    'users' => ['admin' => '123'],
+];
+
 $aura = new RouterContainer();
 $routes = $aura->getMap();
 
 $routes->get('home', '/', App\Http\Action\HelloAction::class);
 $routes->get('about', '/about', App\Http\Action\AboutAction::class);
+$routes->get('cabinet', '/cabinet', [
+    new \Http\Middleware\BasicAuthMiddleware($params['users']),
+    App\Http\Action\CabinetAction::class
+]);
 
 
 $router = new AuraRouterAdapter($aura);
 $resolver = new ActionResolver();
+
 
 ### Running
 
