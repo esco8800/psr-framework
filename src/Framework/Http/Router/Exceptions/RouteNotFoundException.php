@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http\Exceptions;
+namespace Framework\Http\Router\Exceptions;
 
 class RouteNotFoundException extends \LogicException
 {

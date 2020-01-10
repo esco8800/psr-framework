@@ -1,11 +1,12 @@
 <?php
 
+use App\Http\Middleware\NotFoundHandler;
 use Zend\Diactoros\ServerRequestFactory;
 use Aura\Router\RouterContainer;
 use Framework\Http\Router\AuraRouterAdapter;
 use Framework\Http\ActionResolver;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
-use Framework\Http\Exceptions\RequestNotMatchedException;
+use Framework\Http\Router\Exceptions\RequestNotMatchedException;
 use Zend\Diactoros\Response\HtmlResponse;
 
 chdir(dirname(__DIR__));
@@ -23,9 +24,10 @@ $routes = $aura->getMap();
 $routes->get('home', '/', App\Http\Action\HelloAction::class);
 $routes->get('about', '/about', App\Http\Action\AboutAction::class);
 $routes->get('cabinet', '/cabinet', [
-    new \Http\Middleware\BasicAuthMiddleware($params['users']),
+    new App\Http\Middleware\BasicAuthMiddleware($params['users']),
     App\Http\Action\CabinetAction::class
 ]);
+
 
 
 $router = new AuraRouterAdapter($aura);
@@ -35,6 +37,7 @@ $resolver = new ActionResolver();
 ### Running
 
 $request = ServerRequestFactory::fromGlobals();
+$pipeline = new \Framework\Http\Pipeline\Pipeline;
 
 try {
     $result = $router->match($request);
@@ -43,14 +46,15 @@ try {
         $request = $request->withAttribute($attribute, $value);
     }
 
-    $handler = $result->getHandler();
-    /** @var callable $action */
-    $action = $resolver->resolve($handler);
-    $response = $action($request);
+    $handlers = $result->getHandler();
 
-} catch (RequestNotMatchedException $e) {
-    $response = new HtmlResponse('Undefined page', 404);
-}
+    foreach (is_array($handlers) ? $handlers : [$handlers] as $handler){
+        $pipeline->pipe($resolver->resolve($handler));
+    }
+
+} catch (RequestNotMatchedException $e) {}
+
+$response = $pipeline($request, new App\Http\Middleware\NotFoundHandler);
 
 ### Postprocess
 

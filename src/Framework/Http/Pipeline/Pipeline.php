@@ -1,8 +1,8 @@
 <?php
 
-namespace Http\Pipeline;
+namespace Framework\Http\Pipeline;
 
-use Http\Pipeline\Next;
+use Framework\Http\Pipeline\Next;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

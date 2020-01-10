@@ -2,15 +2,18 @@
 
 namespace Framework\Http\Router;
 
-use Framework\Http\Exceptions\RequestNotMatchedException;
+use Framework\Http\Router\Exceptions\RequestNotMatchedException;
 use Psr\Http\Message\ServerRequestInterface;
 use Aura\Router\RouterContainer;
 use Aura\Router\Exception\RouteNotFound;
-use Framework\Http\Exceptions\RouteNotFoundException;
+use Framework\Http\Router\Exceptions\RouteNotFoundException;
 
 class AuraRouterAdapter implements Router
 {
 
+    /**
+     * @var RouterContainer
+     */
     private $aura;
 
     /**
