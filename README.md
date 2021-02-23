@@ -1,1 +1,1 @@
-# psr-framework
+# Разработка psr-framework на чистом php
